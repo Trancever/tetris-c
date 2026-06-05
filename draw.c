@@ -1,275 +1,276 @@
+#include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "draw.h"
-#include "board.h"
+
+enum {
+  BOARD_CELL_WIDTH = 2,
+  BOARD_PANEL_INNER_WIDTH = BOARD_WIDTH * BOARD_CELL_WIDTH + 3,
+  BOARD_PANEL_HEIGHT = BOARD_VISIBLE_HEIGHT + 7,
+  BOARD_PLAYFIELD_TOP_ROW = 5,
+  BOX_INNER_WIDTH = 11,
+  LEGEND_INNER_WIDTH = 48,
+  NEXT_PIECE_INNER_WIDTH = 14,
+  NEXT_PIECE_CONTENT_HEIGHT = 6,
+  NUMBER_TEXT_CAPACITY = 16
+};
+
+enum {
+  LEGEND_KEY_WIDTH = 3,
+  LEGEND_GROUP_GAP_WIDTH = 1
+};
+
+typedef struct {
+  const char *left_key;
+  const char *left_action;
+  const char *right_key;
+  const char *right_action;
+} LegendRow;
+
+static const LegendRow LEGEND_ROWS[] = {
+    {"A/D", "MOVE", "T", "PAUSE"},
+    {"W", "ROTATE", "R", "RESTART"},
+    {"S", "SOFT DROP", "Q", "QUIT"},
+};
 
 static void move_cursor(int row, int col) { printf("\033[%d;%dH", row, col); }
 
-void terminal_clear(void) {
-  printf("\033[2J");
-  printf("\033[H");
+static void write_repeat(char ch, int count) {
+  for (int i = 0; i < count; i++) {
+    putchar(ch);
+  }
 }
 
-static void draw_horizontal_line(int top, int left, int width) {
-  move_cursor(top, left);
+static int text_width(const char *text) {
+  size_t length = strlen(text);
 
-  printf("%s", BOARD_BORDER_VERTICAL);
-
-  for (int row = 0; row < width; row++) {
-    printf(BOARD_BORDER_HORIZONTAL);
+  if (length > (size_t)INT_MAX) {
+    fprintf(stderr, "fatal: text too long to draw\n");
+    abort();
   }
 
-  printf("%s", BOARD_BORDER_VERTICAL);
+  return (int)length;
 }
 
-static void draw_border_with_inner_horizontal_line(int top, int left, int width) {
-  move_cursor(top, left);
-
-  printf("%s", BOARD_BORDER_VERTICAL);
-
-  draw_horizontal_line(top, left + 1, width - 2);
-
-  printf("%s", BOARD_BORDER_VERTICAL);
-}
-
-static void draw_empty_line(int top, int left, int width) {
-  move_cursor(top, left);
-  printf("%s", BOARD_BORDER_VERTICAL);
-
-  move_cursor(top, left + width + 1);
-  printf("%s", BOARD_BORDER_VERTICAL);
-}
-
-static void draw_tetris_line(int top, int left, int width) {
-  move_cursor(top, left);
-  printf("%s", BOARD_BORDER_VERTICAL);
-
-  int tetris_sign_length = 10;
-  int width_of_single_side = (width - tetris_sign_length) / 2;
-  bool is_odd = width % 2 ? true : false;
-
-  for (int y = 0; y < width_of_single_side; y++) {
-    printf("=");
+static void write_cell(const Cell *cell) {
+  if (cell->occupied) {
+    printf("%s■\033[0m ", cell_color_code(cell->color));
+    return;
   }
 
-  printf("  TETRIS  ");
-
-  for (int y = 0; y < width_of_single_side; y++) {
-    printf("=");
-  }
-
-  if (is_odd) {
-    printf("=");
-  }
-
-  printf("%s", BOARD_BORDER_VERTICAL);
+  fputs("  ", stdout);
 }
 
-static void draw_border_with_board_line(int top, int left, const Board *board, int board_visible_y) {
-    move_cursor(top, left);
-    printf("|| ");
+static void draw_horizontal_border(int top, int left, int width) {
+  move_cursor(top, left);
+  putchar('|');
+  write_repeat('-', width);
+  putchar('|');
+}
 
-    for (int col = 0; col < BOARD_WIDTH; col++) {
-      const Cell *cell = get_board_cell_const(board, col, board_visible_y);
+static void draw_text_row(int top, int left, int width, const char *text) {
+  int length = text_width(text);
 
-      if (cell->occupied) {
-        // prints color code for occupied cell, then actual cell character and then default color code to reset
-        printf("%s%s\033[0m ", cell_color_code(cell->color), BOARD_CELL_FILLED);
-      } else {
-        printf("%s ", BOARD_CELL_EMPTY);
-      }
+  if (length > width) {
+    length = width;
+  }
+
+  int left_padding = (width - length) / 2;
+  int right_padding = width - length - left_padding;
+
+  move_cursor(top, left);
+  putchar('|');
+  write_repeat(' ', left_padding);
+  printf("%.*s", length, text);
+  write_repeat(' ', right_padding);
+  putchar('|');
+}
+
+static void draw_filled_title_row(int top, int left, int width,
+                                  const char *title, char fill) {
+  int length = text_width(title);
+
+  if (length > width) {
+    length = width;
+  }
+
+  int left_padding = (width - length) / 2;
+  int right_padding = width - length - left_padding;
+
+  move_cursor(top, left);
+  putchar('|');
+  write_repeat(fill, left_padding);
+  printf("%.*s", length, title);
+  write_repeat(fill, right_padding);
+  putchar('|');
+}
+
+static void draw_empty_row(int top, int left, int width) {
+  move_cursor(top, left);
+  putchar('|');
+  write_repeat(' ', width);
+  putchar('|');
+}
+
+static void draw_board_separator(int top, int left) {
+  move_cursor(top, left);
+  fputs("||", stdout);
+  write_repeat('-', BOARD_PANEL_INNER_WIDTH - 2);
+  fputs("||", stdout);
+}
+
+static void draw_board_cells_row(int top, int left, const Board *board,
+                                 int board_y) {
+  move_cursor(top, left);
+  fputs("|| ", stdout);
+
+  for (int col = 0; col < BOARD_WIDTH; col++) {
+    write_cell(get_board_cell_const(board, col, board_y));
+  }
+
+  fputs("||", stdout);
+}
+
+static void draw_number_box(int top, int left, const char *label, int value) {
+  char value_text[NUMBER_TEXT_CAPACITY];
+  (void)snprintf(value_text, sizeof(value_text), "%03d", value);
+
+  draw_horizontal_border(top, left, BOX_INNER_WIDTH);
+  draw_text_row(top + 1, left, BOX_INNER_WIDTH, label);
+  draw_horizontal_border(top + 2, left, BOX_INNER_WIDTH);
+  draw_text_row(top + 3, left, BOX_INNER_WIDTH, value_text);
+  draw_horizontal_border(top + 4, left, BOX_INNER_WIDTH);
+}
+
+static void draw_legend_row(int top, int left, const LegendRow *row) {
+  int left_action_width = 0;
+  int right_action_width = 0;
+  size_t row_count = sizeof(LEGEND_ROWS) / sizeof(LEGEND_ROWS[0]);
+
+  for (size_t i = 0; i < row_count; i++) {
+    int current_left_action_width = text_width(LEGEND_ROWS[i].left_action);
+    int current_right_action_width = text_width(LEGEND_ROWS[i].right_action);
+
+    if (current_left_action_width > left_action_width) {
+      left_action_width = current_left_action_width;
     }
 
-    printf("||");
+    if (current_right_action_width > right_action_width) {
+      right_action_width = current_right_action_width;
+    }
+  }
 
+  int left_group_width =
+      LEGEND_KEY_WIDTH + LEGEND_GROUP_GAP_WIDTH + left_action_width;
+  int right_group_width =
+      LEGEND_KEY_WIDTH + LEGEND_GROUP_GAP_WIDTH + right_action_width;
+  int remaining_width =
+      LEGEND_INNER_WIDTH - left_group_width - right_group_width;
+  int outer_padding = remaining_width / 3;
+  int middle_padding = remaining_width - (outer_padding * 2);
+
+  move_cursor(top, left);
+  putchar('|');
+  write_repeat(' ', outer_padding);
+  printf("%-*s %-*s", LEGEND_KEY_WIDTH, row->left_key, left_action_width,
+         row->left_action);
+  write_repeat(' ', middle_padding);
+  printf("%-*s %-*s", LEGEND_KEY_WIDTH, row->right_key, right_action_width,
+         row->right_action);
+  write_repeat(' ', outer_padding);
+  putchar('|');
+}
+
+static void draw_piece_preview_row(int top, int left, int width,
+                                   const Piece *piece, int preview_y) {
+  int piece_width = piece->width * BOARD_CELL_WIDTH;
+  int horizontal_padding = (width - piece_width) / 2;
+
+  move_cursor(top, left);
+  putchar('|');
+  write_repeat(' ', horizontal_padding);
+
+  if (preview_y < 0 || preview_y >= piece->height) {
+    write_repeat(' ', piece_width);
+  } else {
+    for (int x = 0; x < piece->width; x++) {
+      write_cell(get_piece_cell_const(piece, x, preview_y));
+    }
+  }
+
+  write_repeat(' ', width - piece_width - horizontal_padding);
+  putchar('|');
+}
+
+void terminal_clear(void) {
+  fputs("\033[2J", stdout);
+  fputs("\033[H", stdout);
 }
 
 int draw_board(int top, int left, const Board *board) {
-  int total_height = BOARD_VISIBLE_HEIGHT + 7;
-  int total_width = BOARD_WIDTH * BOARD_CELL_WIDTH + 3;
-
-  for (int row = 0; row < total_height; row++) {
+  for (int row = 0; row < BOARD_PANEL_HEIGHT; row++) {
     int y = top + row;
 
-    if (row == 0 || row == 6 + BOARD_VISIBLE_HEIGHT) {
-      draw_horizontal_line(y, left, total_width);
+    if (row == 0 || row == BOARD_PANEL_HEIGHT - 1) {
+      draw_horizontal_border(y, left, BOARD_PANEL_INNER_WIDTH);
     } else if (row == 1 || row == 3) {
-      draw_empty_line(y, left, total_width);
+      draw_empty_row(y, left, BOARD_PANEL_INNER_WIDTH);
     } else if (row == 2) {
-      draw_tetris_line(y, left, total_width);
-    } else if (row == 4 || row == 5 + BOARD_VISIBLE_HEIGHT) {
-      draw_border_with_inner_horizontal_line(y, left, total_width);
-    } else if (row >= 5 && row < 5 + BOARD_VISIBLE_HEIGHT) {
-      draw_border_with_board_line(y, left, board, row - 5 + BOARD_HIDDEN_HEIGHT);
+      draw_filled_title_row(y, left, BOARD_PANEL_INNER_WIDTH, "  TETRIS  ",
+                            '=');
+    } else if (row == 4 || row == BOARD_PANEL_HEIGHT - 2) {
+      draw_board_separator(y, left);
+    } else {
+      int board_y = BOARD_HIDDEN_HEIGHT + row - BOARD_PLAYFIELD_TOP_ROW;
+      draw_board_cells_row(y, left, board, board_y);
     }
   }
 
-  return total_width;
-}
-
-static void draw_box(int top, int left, int width, const char *label, const char *value) {
-  draw_horizontal_line(top, left, width);
-
-  move_cursor(top + 1, left);
-  printf("%s", BOARD_BORDER_VERTICAL);
-
-  int score_sign_length = 5;
-  int width_of_single_side = (width - score_sign_length) / 2;
-
-  move_cursor(top + 1, left + width_of_single_side + 1);
-  printf("%s", label);
-
-  move_cursor(top + 1, left + (width_of_single_side * 2) + score_sign_length + 1);
-  printf("%s", BOARD_BORDER_VERTICAL);
-
-  draw_horizontal_line(top + 2, left, width);
-
-  move_cursor(top + 3, left);
-  printf("%s", BOARD_BORDER_VERTICAL);
-
-  int score_value_length = 3;
-  int score_width_of_single_side = (width - score_value_length) / 2;
-
-  move_cursor(top + 3, left + score_width_of_single_side + 1);
-  printf("%s", value);
-
-  move_cursor(top + 3, left + (score_width_of_single_side * 2) + score_value_length + 1);
-  printf("%s", BOARD_BORDER_VERTICAL);
-
-  draw_horizontal_line(top + 4, left, width);
+  return BOARD_PANEL_INNER_WIDTH;
 }
 
 int draw_score(int top, int left, int score) {
-  char score_as_string[4];
-  snprintf(score_as_string, sizeof(score_as_string), "%03d", score);
-
-  int width = 11;
-
-  draw_box(top, left, width, "SCORE", score_as_string);
-
-  return width;
+  draw_number_box(top, left, "SCORE", score);
+  return BOX_INNER_WIDTH;
 }
 
 int draw_level(int top, int left, int level) {
-  char level_as_string[4];
-  snprintf(level_as_string, sizeof(level_as_string), "%03d", level);
-
-  int width = 11;
-
-  draw_box(top, left, width, "LEVEL", level_as_string);
-
-  return width;
-}
-
-static void draw_centered_text_line(int top, int left, int width, const char *text) {
-  int text_length = (int)strlen(text);
-  int left_padding = (width - text_length) / 2;
-  int right_padding = width - text_length - left_padding;
-
-  move_cursor(top, left);
-  printf("%s", BOARD_BORDER_VERTICAL);
-
-  for (int i = 0; i < left_padding; i++) {
-    printf(" ");
-  }
-
-  printf("%s", text);
-
-  for (int i = 0; i < right_padding; i++) {
-    printf(" ");
-  }
-
-  printf("%s", BOARD_BORDER_VERTICAL);
-}
-
-static void draw_legend_row(int top, int left, const char *left_key,
-                            const char *left_action, const char *right_key,
-                            const char *right_action) {
-  move_cursor(top, left);
-  printf("%s %-3s %-15s %-3s %-23s%s", BOARD_BORDER_VERTICAL, left_key,
-         left_action, right_key, right_action, BOARD_BORDER_VERTICAL);
+  draw_number_box(top, left, "LEVEL", level);
+  return BOX_INNER_WIDTH;
 }
 
 int draw_legend(int top, int left) {
-  int width = 48;
+  size_t row_count = sizeof(LEGEND_ROWS) / sizeof(LEGEND_ROWS[0]);
 
-  draw_horizontal_line(top, left, width);
-  draw_centered_text_line(top + 1, left, width, "CONTROLS");
-  draw_horizontal_line(top + 2, left, width);
+  draw_horizontal_border(top, left, LEGEND_INNER_WIDTH);
+  draw_text_row(top + 1, left, LEGEND_INNER_WIDTH, "CONTROLS");
+  draw_horizontal_border(top + 2, left, LEGEND_INNER_WIDTH);
 
-  draw_legend_row(top + 3, left, "A/D", "MOVE", "T", "PAUSE");
-  draw_legend_row(top + 4, left, "W", "ROTATE", "R", "RESTART");
-  draw_legend_row(top + 5, left, "S", "SOFT DROP", "Q", "QUIT");
+  for (size_t i = 0; i < row_count; i++) {
+    draw_legend_row(top + 3 + (int)i, left, &LEGEND_ROWS[i]);
+  }
 
-  draw_horizontal_line(top + 6, left, width);
+  draw_horizontal_border(top + 3 + (int)row_count, left, LEGEND_INNER_WIDTH);
 
-  return width;
+  return LEGEND_INNER_WIDTH;
 }
 
 int draw_next_piece(int top, int left, const Piece *piece) {
-  int width = 14;
-  char *label = "NEXT";
+  int vertical_padding = (NEXT_PIECE_CONTENT_HEIGHT - piece->height) / 2;
 
-  draw_horizontal_line(top, left, width);
+  draw_horizontal_border(top, left, NEXT_PIECE_INNER_WIDTH);
+  draw_text_row(top + 1, left, NEXT_PIECE_INNER_WIDTH, "NEXT");
+  draw_horizontal_border(top + 2, left, NEXT_PIECE_INNER_WIDTH);
 
-  move_cursor(top + 1, left);
-  printf("%s", BOARD_BORDER_VERTICAL);
-
-  int score_sign_length = 4;
-  int width_of_single_side = (width - score_sign_length) / 2;
-
-  move_cursor(top + 1, left + width_of_single_side + 1);
-  printf("%s", label);
-
-  move_cursor(top + 1, left + (width_of_single_side * 2) + score_sign_length + 1);
-  printf("%s", BOARD_BORDER_VERTICAL);
-
-  draw_horizontal_line(top + 2, left, width);
-
-  int piece_width = piece->width;
-  int piece_height = piece->height;
-
-  int local_top = top + 3;
-  int total_height = 6;
-  int delta_height = total_height - piece_height;
-  int single_side_empty_height = delta_height / 2;
-
-  for (int y = 0; y < total_height; y++) {
-    move_cursor(local_top + y, left);
-    printf("%s", BOARD_BORDER_VERTICAL);
-
-
-    int single_side_empty_width = (width - (piece_width * 2)) / 2;
-
-    for (int x = 0; x < single_side_empty_width; x++) {
-      printf(" ");
-    }
-
-    for (int x = 0; x < piece_width; x++) {
-      if (y < single_side_empty_height || y >= single_side_empty_height + piece_height) {
-        printf("  ");
-        continue;
-      }
-
-      const Cell *cell = get_piece_cell_const(piece, x, y - single_side_empty_height);
-
-      if (cell->occupied) {
-        // prints color code for occupied cell, then actual cell character and then default color code to reset
-        printf("%s%s\033[0m ", cell_color_code(cell->color), BOARD_CELL_FILLED);
-      } else {
-        printf("%s ", BOARD_CELL_EMPTY);
-      }
-    }
-
-    for (int x = 0; x < single_side_empty_width; x++) {
-      printf(" ");
-    }
-  
-    printf("%s", BOARD_BORDER_VERTICAL);
+  for (int row = 0; row < NEXT_PIECE_CONTENT_HEIGHT; row++) {
+    draw_piece_preview_row(top + 3 + row, left, NEXT_PIECE_INNER_WIDTH, piece,
+                           row - vertical_padding);
   }
 
-  draw_horizontal_line(local_top + total_height, left, width);
+  draw_horizontal_border(top + 3 + NEXT_PIECE_CONTENT_HEIGHT, left,
+                         NEXT_PIECE_INNER_WIDTH);
 
-  return 0;
+  return NEXT_PIECE_INNER_WIDTH;
 }

@@ -2,12 +2,7 @@
 #define DRAW_H
 
 #include "board.h"
-
-#define BOARD_CELL_WIDTH 2
-#define BOARD_BORDER_VERTICAL "|"
-#define BOARD_BORDER_HORIZONTAL "-"
-#define BOARD_CELL_FILLED "■"
-#define BOARD_CELL_EMPTY " "
+#include "piece.h"
 
 int draw_board(int top, int left, const Board *board);
 
