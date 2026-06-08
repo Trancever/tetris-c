@@ -23,6 +23,4 @@ Cell *get_cell(Cell *cells, int x, int y, int width);
 
 const Cell *get_cell_const(const Cell *cells, int x, int y, int width);
 
-const char *cell_color_code(CellColor color);
-
 #endif

@@ -1,0 +1,92 @@
+[
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c shared/board.c -o build/shared/board.o",
+    "file": "/Users/dawid/dev/tetris/shared/board.c",
+    "output": "/Users/dawid/dev/tetris/build/shared/board.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c shared/cell.c -o build/shared/cell.o",
+    "file": "/Users/dawid/dev/tetris/shared/cell.c",
+    "output": "/Users/dawid/dev/tetris/build/shared/cell.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c shared/game.c -o build/shared/game.o",
+    "file": "/Users/dawid/dev/tetris/shared/game.c",
+    "output": "/Users/dawid/dev/tetris/build/shared/game.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c shared/game_timer.c -o build/shared/game_timer.o",
+    "file": "/Users/dawid/dev/tetris/shared/game_timer.c",
+    "output": "/Users/dawid/dev/tetris/build/shared/game_timer.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c shared/piece.c -o build/shared/piece.o",
+    "file": "/Users/dawid/dev/tetris/shared/piece.c",
+    "output": "/Users/dawid/dev/tetris/build/shared/piece.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -Iterminal -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c main.c -o build/main.o",
+    "file": "/Users/dawid/dev/tetris/main.c",
+    "output": "/Users/dawid/dev/tetris/build/main.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -Iterminal -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c terminal/draw.c -o build/terminal/draw.o",
+    "file": "/Users/dawid/dev/tetris/terminal/draw.c",
+    "output": "/Users/dawid/dev/tetris/build/terminal/draw.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -Iterminal -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c terminal/input.c -o build/terminal/input.o",
+    "file": "/Users/dawid/dev/tetris/terminal/input.c",
+    "output": "/Users/dawid/dev/tetris/build/terminal/input.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -Iterminal -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c terminal/engine.c -o build/terminal/engine.o",
+    "file": "/Users/dawid/dev/tetris/terminal/engine.c",
+    "output": "/Users/dawid/dev/tetris/build/terminal/engine.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -Iterminal -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c terminal/cell_color.c -o build/terminal/cell_color.o",
+    "file": "/Users/dawid/dev/tetris/terminal/cell_color.c",
+    "output": "/Users/dawid/dev/tetris/build/terminal/cell_color.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -Isdl -Ivendor/SDL/include -I/Users/dawid/dev/tetris/build/vendor/sdl-install/include -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c main_sdl.c -o build/main_sdl.o",
+    "file": "/Users/dawid/dev/tetris/main_sdl.c",
+    "output": "/Users/dawid/dev/tetris/build/main_sdl.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -Isdl -Ivendor/SDL/include -I/Users/dawid/dev/tetris/build/vendor/sdl-install/include -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c sdl/engine.c -o build/sdl/engine.o",
+    "file": "/Users/dawid/dev/tetris/sdl/engine.c",
+    "output": "/Users/dawid/dev/tetris/build/sdl/engine.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -Isdl -Ivendor/SDL/include -I/Users/dawid/dev/tetris/build/vendor/sdl-install/include -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c sdl/cell_color.c -o build/sdl/cell_color.o",
+    "file": "/Users/dawid/dev/tetris/sdl/cell_color.c",
+    "output": "/Users/dawid/dev/tetris/build/sdl/cell_color.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -Isdl -Ivendor/SDL/include -I/Users/dawid/dev/tetris/build/vendor/sdl-install/include -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c sdl/input.c -o build/sdl/input.o",
+    "file": "/Users/dawid/dev/tetris/sdl/input.c",
+    "output": "/Users/dawid/dev/tetris/build/sdl/input.o"
+  },
+  {
+    "directory": "/Users/dawid/dev/tetris",
+    "command": "cc -D_POSIX_C_SOURCE=200809L -Ishared -Isdl -Ivendor/SDL/include -I/Users/dawid/dev/tetris/build/vendor/sdl-install/include -std=c11 -Wall -Wextra -Wpedantic -Wstrict-prototypes -Wmissing-prototypes -Wshadow -Wconversion -c sdl/draw.c -o build/sdl/draw.o",
+    "file": "/Users/dawid/dev/tetris/sdl/draw.c",
+    "output": "/Users/dawid/dev/tetris/build/sdl/draw.o"
+  }
+]

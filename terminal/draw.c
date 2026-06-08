@@ -1,9 +1,11 @@
+#include <inttypes.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "draw.h"
+#include "cell_color.h"
 
 enum {
   BOARD_CELL_WIDTH = 2,
@@ -133,9 +135,10 @@ static void draw_board_cells_row(int top, int left, const Board *board,
   fputs("||", stdout);
 }
 
-static void draw_number_box(int top, int left, const char *label, int value) {
+static void draw_number_box(int top, int left, const char *label,
+                            uint64_t value) {
   char value_text[NUMBER_TEXT_CAPACITY];
-  (void)snprintf(value_text, sizeof(value_text), "%03d", value);
+  (void)snprintf(value_text, sizeof(value_text), "%03" PRIu64, value);
 
   draw_horizontal_border(top, left, BOX_INNER_WIDTH);
   draw_text_row(top + 1, left, BOX_INNER_WIDTH, label);
@@ -231,12 +234,12 @@ int draw_board(int top, int left, const Board *board) {
   return BOARD_PANEL_INNER_WIDTH;
 }
 
-int draw_score(int top, int left, int score) {
+int draw_score(int top, int left, uint64_t score) {
   draw_number_box(top, left, "SCORE", score);
   return BOX_INNER_WIDTH;
 }
 
-int draw_level(int top, int left, int level) {
+int draw_level(int top, int left, uint64_t level) {
   draw_number_box(top, left, "LEVEL", level);
   return BOX_INNER_WIDTH;
 }
@@ -273,4 +276,23 @@ int draw_next_piece(int top, int left, const Piece *piece) {
                          NEXT_PIECE_INNER_WIDTH);
 
   return NEXT_PIECE_INNER_WIDTH;
+}
+
+void draw_game(const GameState *game) {
+  Board render_board = game->board;
+  board_overlay_piece_for_render(&render_board, &game->current_piece, game->piece_x,
+                      game->piece_y);
+
+  int board_width = draw_board(1, 1, &render_board);
+
+  int score_left = board_width + 10;
+  int score_width = draw_score(1, score_left, game->score);
+
+  int level_left = score_left + score_width + 2;
+  int level_width = draw_level(1, level_left, game_get_level(game));
+
+  int next_piece_left = level_left + level_width + 10;
+  draw_next_piece(1, next_piece_left, &game->next_piece);
+  draw_legend(12, score_left);
+  printf("\n");
 }

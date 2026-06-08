@@ -1,7 +1,7 @@
+#include <stdint.h>
 #include <stdio.h>
 
 #include "board.h"
-#include "draw.h"
 #include "game.h"
 #include "piece.h"
 
@@ -21,25 +21,6 @@ GameState initialize_game(void) {
   game_set_initial_piece_position(&game);
 
   return game;
-}
-
-void draw_game(const GameState *game) {
-  Board render_board = game->board;
-  board_overlay_piece_for_render(&render_board, &game->current_piece, game->piece_x,
-                      game->piece_y);
-
-  int board_width = draw_board(1, 1, &render_board);
-
-  int score_left = board_width + 10;
-  int score_width = draw_score(1, score_left, game->score);
-
-  int level_left = score_left + score_width + 2;
-  int level_width = draw_level(1, level_left, game_get_level(game));
-
-  int next_piece_left = level_left + level_width + 10;
-  draw_next_piece(1, next_piece_left, &game->next_piece);
-  draw_legend(12, score_left);
-  printf("\n");
 }
 
 static void generate_new_piece(GameState *game) {
@@ -119,13 +100,13 @@ void game_step_down(GameState *game) {
     }
 
     int cleared_rows = board_clear_completed_rows(&game->board);
-    game->score += cleared_rows * cleared_rows;
+    game->score += (uint64_t)cleared_rows * (uint64_t)cleared_rows;
 
     generate_new_piece(game);
   }
 }
 
-int game_get_level(const GameState *game) {
+uint64_t game_get_level(const GameState *game) {
   if (game->score == 0) {
     return 1;
   }
