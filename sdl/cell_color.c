@@ -3,8 +3,6 @@
 
 CellColorRGB cell_color_to_rgb(CellColor color) {
   switch (color) {
-    case COLOR_NONE:
-      return (CellColorRGB){0, 0, 0};
     case COLOR_CYAN:
       return (CellColorRGB){0, 255, 255};
     case COLOR_YELLOW:
@@ -19,5 +17,8 @@ CellColorRGB cell_color_to_rgb(CellColor color) {
       return (CellColorRGB){0, 0, 255};
     case COLOR_PURPLE:
       return (CellColorRGB){128, 0, 128};
+    case COLOR_NONE:
+    default:
+      return (CellColorRGB){0, 0, 0};
   }
 }

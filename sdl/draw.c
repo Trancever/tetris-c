@@ -8,14 +8,6 @@ void draw_board(AppState *app_state, uint64_t total_board_width,
   uint64_t start_x = 50;
   uint64_t start_y = 50;
 
-  static SDL_FPoint line_points[5];
-  line_points[0] = (SDL_FPoint){start_x, start_y};
-  line_points[1] = (SDL_FPoint){start_x + total_board_width, start_y};
-  line_points[2] =
-      (SDL_FPoint){start_x + total_board_width, start_y + total_board_height};
-  line_points[3] = (SDL_FPoint){start_x, start_y + total_board_height};
-  line_points[4] = (SDL_FPoint){start_x, start_y};
-
   SDL_SetRenderDrawColor(app_state->renderer, 50, 50, 50,
                          SDL_ALPHA_OPAQUE); /* grey, full alpha */
   SDL_RenderClear(app_state->renderer);     /* start with a blank canvas. */
